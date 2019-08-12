@@ -5,7 +5,7 @@ from tests.fixtures import get_quotes_from_fixture
 
 
 def test_find_pivot_prices():
-    pl = PriceLevelFromClusters(0.002, 200)
+    pl = PriceLevelFromClusters(0.2, 200)
 
     data = get_quotes_from_fixture()
     closes = data['Close'].values
@@ -19,7 +19,7 @@ def test_find_pivot_prices():
 
 
 def test_price_level_from_clusters_fit():
-    pl = PriceLevelFromClusters(0.002, 200)
+    pl = PriceLevelFromClusters(0.2, 200)
 
     data = get_quotes_from_fixture()
 

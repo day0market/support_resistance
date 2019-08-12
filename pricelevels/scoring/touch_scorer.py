@@ -102,23 +102,23 @@ class TouchScorer(BaseScorer):
     def _get_level_score(self, candles, high_low_marks, price):
         events = []
         score = 0.0
-        pos = 0
+        print(len(candles))
         last_cut_pos = -10
         for i in range(len(candles)):
             candle = candles.iloc[i]
             # If the body of the candle cuts through the price, then deduct some score
-            if self.cut_body(price, candle) and pos - last_cut_pos > self.MIN_DIFF_FOR_CONSECUTIVE_CUT:
+            if self.cut_body(price, candle) and i - last_cut_pos > self.MIN_DIFF_FOR_CONSECUTIVE_CUT:
                 score += self.score_for_cut_body
-                last_cut_pos = pos
+                last_cut_pos = i
                 events.append(PointEvent(PointEventType.CUT_BODY, candle['Datetime'], self.score_for_cut_body))
             # If the wick of the candle cuts through the price, then deduct some score
-            elif self.cut_wick(price, candle) and (pos - last_cut_pos > self.MIN_DIFF_FOR_CONSECUTIVE_CUT):
+            elif self.cut_wick(price, candle) and (i - last_cut_pos > self.MIN_DIFF_FOR_CONSECUTIVE_CUT):
                 score += self.score_for_cut_wick
-                last_cut_pos = pos
+                last_cut_pos = i
                 events.append(PointEvent(PointEventType.CUT_WICK, candle['Datetime'], self.score_for_cut_body))
             # If the if is close the high of some candle and it was in an uptrend, then add some score to this
-            elif self.touch_high(price, candle) and self.in_up_trend(candles, price, pos):
-                high_low_value = high_low_marks[pos]
+            elif self.touch_high(price, candle) and self.in_up_trend(candles, price, i):
+                high_low_value = high_low_marks[i]
                 # If it is a high, then add some score S1
                 if high_low_value:
                     score += self.score_for_touch_high_low
@@ -130,8 +130,8 @@ class TouchScorer(BaseScorer):
                     events.append(PointEvent(PointEventType.TOUCH_UP, candle['Datetime'], self.score_for_touch_normal))
 
             # If the if is close the low of some candle and it was in an downtrend, then add some score to this
-            elif self.touch_low(price, candle) and self.in_down_trend(candles, price, pos):
-                high_low_value = high_low_marks[pos]
+            elif self.touch_low(price, candle) and self.in_down_trend(candles, price, i):
+                high_low_value = high_low_marks[i]
                 # If it is a high, then add some score S1
                 if high_low_value is not None and not high_low_value:
                     score += self.score_for_touch_high_low
@@ -142,8 +142,6 @@ class TouchScorer(BaseScorer):
                     score += self.score_for_touch_normal
                     events.append(
                         PointEvent(PointEventType.TOUCH_DOWN_HIGHLOW, candle['Datetime'], self.score_for_touch_normal))
-
-            pos += 1
 
         return PointScore(price, score, events)
 
