@@ -5,17 +5,15 @@ from zigzag import peak_valley_pivots
 from .exceptions import InvalidParameterException, InvalidArgumentException
 
 
-class ZigZagLevels:
+class BaseLevelFinder:
 
-    def __init__(self, peak_percent_delta, merge_distance, merge_percent=None, min_bars_between_peaks=0, peaks='All',
-                 level_selector='median'):
-        self._peak_percent_delta = peak_percent_delta / 100
+    def __init__(self, merge_distance, merge_percent=None, level_selector='median'):
+
         self._merge_distance = merge_distance
         self._merge_percent = merge_percent
-        self._min_bars_between_peaks = min_bars_between_peaks
 
         self._level_selector = level_selector
-        self._peaks = peaks
+
         self._levels = None
         self._validate_init_args()
 
@@ -36,10 +34,13 @@ class ZigZagLevels:
                 'Only np.array and pd.DataFrame are supported in `fit` method'
             )
 
-        pivot_prices = self._find_pivot_prices(X)
-        levels = self._aggregate_prices_to_levels(pivot_prices, self._get_distance(X))
+        prices = self._find_potential_level_prices(X)
+        levels = self._aggregate_prices_to_levels(prices, self._get_distance(X))
 
         self._levels = levels
+
+    def _find_potential_level_prices(self, X):
+        raise NotImplementedError()
 
     def _get_distance(self, X):
         if self._merge_distance:
@@ -48,7 +49,20 @@ class ZigZagLevels:
         mean_price = np.mean(X)
         return self._merge_percent * mean_price / 100
 
-    def _find_pivot_prices(self, X):
+    def _aggregate_prices_to_levels(self, pivot_prices, distance):
+        raise NotImplementedError()
+
+
+class BaseZigZagLevels(BaseLevelFinder):
+
+    def __init__(self, peak_percent_delta, merge_distance, merge_percent=None, min_bars_between_peaks=0, peaks='All',
+                 level_selector='median'):
+        self._peak_percent_delta = peak_percent_delta / 100
+        self._min_bars_between_peaks = min_bars_between_peaks
+        self._peaks = peaks
+        super().__init__(merge_distance, merge_percent, level_selector)
+
+    def _find_potential_level_prices(self, X):
         pivots = peak_valley_pivots(X, self._peak_percent_delta, -self._peak_percent_delta)
         indexes = self._get_pivot_indexes(pivots)
         pivot_prices = X[indexes]
@@ -72,7 +86,11 @@ class ZigZagLevels:
     def _filter_by_bars_between(self, indexes):
         indexes = np.sort(indexes).reshape(-1, 1)
 
-        selected = [indexes[0][0]]
+        try:
+            selected = [indexes[0][0]]
+        except IndexError:
+            return indexes
+
         pre_idx = indexes[0][0]
         for i in range(1, len(indexes)):
             if indexes[i][0] - pre_idx < self._min_bars_between_peaks:
@@ -81,6 +99,3 @@ class ZigZagLevels:
             selected.append(pre_idx)
 
         return np.array(selected)
-
-    def _aggregate_prices_to_levels(self, pivot_prices, distance):
-        raise NotImplementedError()

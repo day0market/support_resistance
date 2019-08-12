@@ -1,16 +1,16 @@
 import numpy as np
 
-from pricelevels.cluster import PriceLevelFromClusters
+from pricelevels.cluster import ZigZagClusterLevels
 from tests.fixtures import get_quotes_from_fixture
 
 
 def test_find_pivot_prices():
-    pl = PriceLevelFromClusters(0.2, 200)
+    pl = ZigZagClusterLevels(0.2, 200)
 
     data = get_quotes_from_fixture()
     closes = data['Close'].values
 
-    pivot_prices = pl._find_pivot_prices(closes[-100:])
+    pivot_prices = pl._find_potential_level_prices(closes[-100:])
 
     expected = np.array([136940, 135750, 136510, 135540, 136920, 135370, 135890, 135340, 136690,
                          134800, 135070, 134720, 135370, 134180, 135370, 134660, 135340, 134020])
@@ -19,7 +19,7 @@ def test_find_pivot_prices():
 
 
 def test_price_level_from_clusters_fit():
-    pl = PriceLevelFromClusters(0.2, 200)
+    pl = ZigZagClusterLevels(0.2, 200)
 
     data = get_quotes_from_fixture()
 

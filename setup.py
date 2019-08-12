@@ -19,7 +19,7 @@ setup(
     author='Alex Hurko',
     author_email='alex1hurko@gmail.com',
 
-    license='EULA',
+    license='wtfpl',
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 

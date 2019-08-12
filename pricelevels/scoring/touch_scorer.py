@@ -28,6 +28,12 @@ class PointScore:
         self.score = score
         self.point_event_list = point_event_list
 
+    def __str__(self):
+        return f'| price: {self.point}: score{self.score} |'
+
+    def __repr__(self):
+        return str(self)
+
 
 class TouchScorer(BaseScorer):
 
@@ -102,7 +108,6 @@ class TouchScorer(BaseScorer):
     def _get_level_score(self, candles, high_low_marks, price):
         events = []
         score = 0.0
-        print(len(candles))
         last_cut_pos = -10
         for i in range(len(candles)):
             candle = candles.iloc[i]
